@@ -191,7 +191,7 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process2() {
 		KeepOnlyReferencedElement(set_remainingIds, matches_provider_->pairWise_matches_);
 	}
 	matching::PairWiseMatches  tripletWise_matches;
-	matching::Load(tripletWise_matches,"F:\\sfm_dataset\\tripletwise_matches.txt");
+	matching::Load(tripletWise_matches,"/home/spark/lpf/tripletwise/tripletwise_matches.txt");
 	if (!Compute_Initial_Structure(tripletWise_matches))
 	{
 		std::cerr << "GlobalSfM:: Cannot initialize an initial structure!" << std::endl;

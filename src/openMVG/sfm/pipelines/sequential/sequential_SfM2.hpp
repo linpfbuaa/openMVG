@@ -41,6 +41,7 @@ public:
   ~SequentialSfMReconstructionEngine2() override;
 
   virtual bool Process() override;
+  virtual bool Process2() override;
 
   void SetFeaturesProvider(Features_Provider * provider);
   void SetMatchesProvider(Matches_Provider * provider);

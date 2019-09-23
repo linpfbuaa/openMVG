@@ -139,7 +139,7 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process() {
     std::cerr << "GlobalSfM:: Translation Averaging failure!" << std::endl;
     return false;
   }
-  if (!matching::Save(tripletWise_matches,"F:\\sfm_dataset\\tripletwise_matches.txt"))
+  if (!matching::Save(tripletWise_matches,"/home/spark/lpf/tripletwise_matches.txt"))
   {
 	  std::cerr
 		  << "Cannot save computed matches in: "

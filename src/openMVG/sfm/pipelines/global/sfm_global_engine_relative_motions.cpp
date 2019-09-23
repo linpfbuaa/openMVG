@@ -196,7 +196,7 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process2() {
 	{
 		std::cerr << "GlobalSfM:: Cannot initialize an initial structure!" << std::endl;
 		return false;
-	}
+	}else return true;
 }
 
 /// Compute from relative rotations the global rotations of the camera poses

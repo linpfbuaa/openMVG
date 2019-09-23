@@ -200,6 +200,10 @@ bool SequentialSfMReconstructionEngine::Process() {
   return true;
 }
 
+  
+bool SequentialSfMReconstructionEngine::Process2() {
+}
+  
 /// Select a candidate initial pair
 bool SequentialSfMReconstructionEngine::ChooseInitialPair(Pair & initialPairIndex) const
 {

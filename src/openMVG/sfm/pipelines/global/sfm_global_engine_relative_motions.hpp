@@ -45,6 +45,7 @@ public:
   void SetTranslationAveragingMethod(ETranslationAveragingMethod eTranslation_averaging_method_);
 
   bool Process() override;
+  bool Process2() override;
 
 protected:
   /// Compute from relative rotations the global rotations of the camera poses

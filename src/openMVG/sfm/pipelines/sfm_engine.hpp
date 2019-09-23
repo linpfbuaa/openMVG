@@ -38,6 +38,7 @@ public:
   virtual ~ReconstructionEngine() = default;
 
   virtual bool Process() = 0;
+  virtual bool Process2() = 0;
 
   cameras::Intrinsic_Parameter_Type Get_Intrinsics_Refinement_Type() const
   {

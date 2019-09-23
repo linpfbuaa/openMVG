@@ -76,7 +76,7 @@ $ sudo apt-get install graphviz
 
 2. Checkout OpenMVG.
 ```shell
-$ git clone --recursive https://github.com/openMVG/openMVG.git
+$ git clone --recursive https://github.com/linpfbuaa/openMVG.git
 $ mkdir openMVG_Build && cd openMVG_Build
 ```
 

@@ -42,6 +42,7 @@ public:
   void SetMatchesProvider(Matches_Provider * provider);
 
   virtual bool Process() override;
+  virtual bool Process2() override;
 
   void setInitialPair(const Pair & initialPair)
   {

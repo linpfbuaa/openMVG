@@ -22,7 +22,7 @@ namespace geometry
 */
 class Pose3
 {
-  protected:
+  public:
 
     /// Orientation matrix
     Mat3 rotation_;

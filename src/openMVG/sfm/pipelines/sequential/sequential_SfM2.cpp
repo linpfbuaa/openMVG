@@ -199,6 +199,10 @@ bool SequentialSfMReconstructionEngine2::Process() {
 
   return true;
 }
+  
+  
+bool SequentialSfMReconstructionEngine2::Process2() {
+}
 
 bool SequentialSfMReconstructionEngine2::InitTracksAndLandmarks()
 {

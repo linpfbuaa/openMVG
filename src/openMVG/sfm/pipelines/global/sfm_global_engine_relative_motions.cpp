@@ -139,6 +139,13 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process() {
     std::cerr << "GlobalSfM:: Translation Averaging failure!" << std::endl;
     return false;
   }
+  if (!matching::Save(tripletWise_matches,"F:\\sfm_dataset\\tripletwise_matches.txt"))
+  {
+	  std::cerr
+		  << "Cannot save computed matches in: "
+		  << std::endl;
+	  return EXIT_FAILURE;
+  }
   if (!Compute_Initial_Structure(tripletWise_matches))
   {
     std::cerr << "GlobalSfM:: Cannot initialize an initial structure!" << std::endl;
@@ -170,6 +177,26 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process() {
   }
 
   return true;
+}
+
+bool GlobalSfMReconstructionEngine_RelativeMotions::Process2() {
+	{
+		const Pair_Set pairs = matches_provider_->getPairs();
+		const std::set<IndexT> set_remainingIds = graph::CleanGraph_KeepLargestBiEdge_Nodes<Pair_Set, IndexT>(pairs);
+		if (set_remainingIds.empty())
+		{
+			std::cout << "Invalid input image graph for global SfM" << std::endl;
+			return false;
+		}
+		KeepOnlyReferencedElement(set_remainingIds, matches_provider_->pairWise_matches_);
+	}
+	matching::PairWiseMatches  tripletWise_matches;
+	matching::Load(tripletWise_matches,"F:\\sfm_dataset\\tripletwise_matches.txt");
+	if (!Compute_Initial_Structure(tripletWise_matches))
+	{
+		std::cerr << "GlobalSfM:: Cannot initialize an initial structure!" << std::endl;
+		return false;
+	}
 }
 
 /// Compute from relative rotations the global rotations of the camera poses

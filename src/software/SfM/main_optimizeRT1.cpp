@@ -254,56 +254,56 @@ int main(int argc, char **argv)
 
   // Load input SfM_Data scene
   SfM_Data sfm_data1;
-  if (!Load(sfm_data1, "F:\\sfm_dataset\\tjgy10_part0\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data1, "/home/spark/lpf/sfmdatabin/0sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
     std::cerr << std::endl
       << "The input SfM_Data file \""<< "sfm_data1" << "\" cannot be read." << std::endl;
     return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data2;
-  if (!Load(sfm_data2, "F:\\sfm_dataset\\tjgy10_part1\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data2, "/home/spark/lpf/sfmdatabin/1sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data2" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data3;
-  if (!Load(sfm_data3, "F:\\sfm_dataset\\tjgy10_part2\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data3, "/home/spark/lpf/sfmdatabin/2sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data3" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data4;
-  if (!Load(sfm_data4, "F:\\sfm_dataset\\tjgy10_part3\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data4, "/home/spark/lpf/sfmdatabin/3sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data4" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data5;
-  if (!Load(sfm_data5, "F:\\sfm_dataset\\tjgy10_part4\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data5, "/home/spark/lpf/sfmdatabin/4sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data5" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data6;
-  if (!Load(sfm_data6, "F:\\sfm_dataset\\tjgy10_part5\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data6, "/home/spark/lpf/sfmdatabin/5sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data6" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data7;
-  if (!Load(sfm_data7, "F:\\sfm_dataset\\tjgy10_part6\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data7, "/home/spark/lpf/sfmdatabin/6sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data7" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data8;
-  if (!Load(sfm_data8, "F:\\sfm_dataset\\tjgy10_part7\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data8, "/home/spark/lpf/sfmdatabin/7sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
 		  << "The input SfM_Data file \"" << "sfm_data8" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;

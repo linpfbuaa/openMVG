@@ -25,12 +25,137 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <vector>
 
 using namespace openMVG;
 using namespace openMVG::sfm;
 using namespace openMVG::cameras;
 using namespace openMVG::geometry;
 using namespace openMVG::features;
+
+double scale_t(Poses test_pose1, Poses test_pose2, std::vector<int> repeated_view, int repeat_view1, int repeat_view2) {
+	double scale_T;
+	Mat3 R_spec;  //sfmdata2
+	Vec3 T_spec;
+	Vec3 scale_part2_t;
+	Mat3 scale_part2_r;
+	Mat3 R_part1; //sfmdata1
+	Vec3 T_part1;
+	Vec3 C_part1;
+	Vec3 scale_part1_t;
+	Mat3 scale_part1_r;
+	for (auto it_test1 = test_pose1.begin(); it_test1 != test_pose1.end(); it_test1++) {
+		if (it_test1->first == repeat_view1) {
+			R_part1 = it_test1->second.rotation();
+			T_part1 = it_test1->second.translation();
+			C_part1 = it_test1->second.center();
+		}
+
+		if (it_test1->first == repeat_view2) {
+			scale_part1_t = it_test1->second.translation();
+			scale_part1_r = it_test1->second.rotation();
+		}
+	}
+	Vec3 ssss1 = scale_part1_t - scale_part1_r * R_part1.transpose() * T_part1;
+
+	for (auto it_test2 = test_pose2.begin(); it_test2 != test_pose2.end(); it_test2++) {
+		if (it_test2->first == repeat_view1) {
+			R_spec = it_test2->second.rotation();
+			T_spec = it_test2->second.translation();
+		}
+		if (it_test2->first == repeat_view2) {
+			scale_part2_t = it_test2->second.translation();
+			scale_part2_r = it_test2->second.rotation();
+		}
+	}
+	Vec3 ssss2 = scale_part2_t - scale_part2_r * R_spec.transpose() * T_spec;
+
+	scale_T = sqrt(ssss1.dot(ssss1)) / sqrt(ssss2.dot(ssss2));
+	return scale_T;
+}
+
+bool merge2data(SfM_Data& sfm_data1, SfM_Data& sfm_data2) {
+	Poses test_pose1 = sfm_data1.poses;
+	Poses test_pose2 = sfm_data2.poses;
+	//transform R t
+	std::vector<int> repeated_view;
+	for (auto it_test1 = test_pose1.begin(); it_test1 != test_pose1.end(); it_test1++) {
+		for (auto it_test2 = test_pose2.begin(); it_test2 != test_pose2.end(); it_test2++) {
+			if (it_test1->first == it_test2->first) {
+				repeated_view.push_back(it_test1->first);
+				//std::cout << it_test1->first << std::endl;
+			}
+		}
+	}
+	if (repeated_view.size() < 2)return false;
+	Mat3 R_spec;  //sfmdata2
+	Vec3 T_spec;
+	Vec3 scale_part2_t;
+	Mat3 scale_part2_r;
+	Mat3 R_part1; //sfmdata1
+	Vec3 T_part1;
+	Vec3 C_part1;
+	Vec3 scale_part1_t;
+	Mat3 scale_part1_r;
+	for (auto it_test1 = test_pose1.begin(); it_test1 != test_pose1.end(); it_test1++) {
+		if (it_test1->first == repeated_view[0]) {
+			R_part1 = it_test1->second.rotation();
+			T_part1 = it_test1->second.translation();
+			C_part1 = it_test1->second.center();
+		}
+	}
+	
+	for (auto it_test2 = test_pose2.begin(); it_test2 != test_pose2.end(); it_test2++) {
+		if (it_test2->first == repeated_view[0]) {
+			R_spec = it_test2->second.rotation();
+			T_spec = it_test2->second.translation();
+		}
+	}
+	std::vector<double> scalet_average;
+	for (int i = 1; i < repeated_view.size(); i++) {
+		scalet_average.push_back(scale_t(test_pose1, test_pose2, repeated_view, repeated_view[0], repeated_view[i]));
+	}
+	double scalet_full = 0;
+	for (int i = 0; i < scalet_average.size(); i++) {
+		scalet_full = scalet_full + scalet_average[i];
+	}
+	double scale_T = scalet_full/ scalet_average.size(); //average
+	std::cout << scale_T << std::endl;
+
+	for (auto it_test2 = sfm_data2.poses.begin(); it_test2 != sfm_data2.poses.end(); it_test2++) {
+		if (it_test2->first == repeated_view[0])continue;
+		else
+		{
+			Mat3 r_rel = it_test2->second.rotation_ * R_spec.transpose(); //correct
+			Vec3 t_rel = it_test2->second.translation() - r_rel * T_spec;
+			it_test2->second.rotation_ = r_rel * R_part1; //new_R  correct
+
+			it_test2->second.center_ = -((it_test2->second.rotation_.transpose()) * (r_rel * T_part1 + scale_T * t_rel)); //t
+		}
+	}
+
+	test_pose2[repeated_view[0]].rotation_ = R_part1;
+	test_pose2[repeated_view[0]].center_ = C_part1;
+
+
+
+	//----------------------
+	Views data2_views = sfm_data2.views;
+	Poses data2_poses = sfm_data2.poses;
+	Intrinsics data2_intrinsics = sfm_data2.intrinsics;
+	Landmarks data2_structure = sfm_data2.structure;
+	Landmarks data2_control_points = sfm_data2.control_points;
+	for (auto it = data2_views.begin(); it != data2_views.end(); it++) {
+		sfm_data1.views.insert(*it);
+	}
+	for (auto it = data2_poses.begin(); it != data2_poses.end(); it++) {
+		sfm_data1.poses.insert(*it);
+	}
+	for (auto it = data2_intrinsics.begin(); it != data2_intrinsics.end(); it++) {
+		sfm_data1.intrinsics.insert(*it);
+	}
+	return true;
+}
 
 int main(int argc, char **argv)
 {
@@ -129,110 +254,121 @@ int main(int argc, char **argv)
 
   // Load input SfM_Data scene
   SfM_Data sfm_data1;
-  if (!Load(sfm_data1, "/home/spark/lpf/tjgy_part0/sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data1, "F:\\sfm_dataset\\tjgy10_part0\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
     std::cerr << std::endl
-      << "The input SfM_Data file \""<< sSfM_Data_Filename << "\" cannot be read." << std::endl;
+      << "The input SfM_Data file \""<< "sfm_data1" << "\" cannot be read." << std::endl;
     return EXIT_FAILURE;
   }
 
   SfM_Data sfm_data2;
-  if (!Load(sfm_data2, "/home/spark/lpf/tjgy_part1/sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+  if (!Load(sfm_data2, "F:\\sfm_dataset\\tjgy10_part1\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
 	  std::cerr << std::endl
-		  << "The input SfM_Data file \"" << sSfM_Data_Filename << "\" cannot be read." << std::endl;
+		  << "The input SfM_Data file \"" << "sfm_data2" << "\" cannot be read." << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  SfM_Data sfm_data3;
+  if (!Load(sfm_data3, "F:\\sfm_dataset\\tjgy10_part2\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+	  std::cerr << std::endl
+		  << "The input SfM_Data file \"" << "sfm_data3" << "\" cannot be read." << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  SfM_Data sfm_data4;
+  if (!Load(sfm_data4, "F:\\sfm_dataset\\tjgy10_part3\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+	  std::cerr << std::endl
+		  << "The input SfM_Data file \"" << "sfm_data4" << "\" cannot be read." << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  SfM_Data sfm_data5;
+  if (!Load(sfm_data5, "F:\\sfm_dataset\\tjgy10_part4\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+	  std::cerr << std::endl
+		  << "The input SfM_Data file \"" << "sfm_data5" << "\" cannot be read." << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  SfM_Data sfm_data6;
+  if (!Load(sfm_data6, "F:\\sfm_dataset\\tjgy10_part5\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+	  std::cerr << std::endl
+		  << "The input SfM_Data file \"" << "sfm_data6" << "\" cannot be read." << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  SfM_Data sfm_data7;
+  if (!Load(sfm_data7, "F:\\sfm_dataset\\tjgy10_part6\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+	  std::cerr << std::endl
+		  << "The input SfM_Data file \"" << "sfm_data7" << "\" cannot be read." << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  SfM_Data sfm_data8;
+  if (!Load(sfm_data8, "F:\\sfm_dataset\\tjgy10_part7\\sfm_data.bin", ESfM_Data(VIEWS | EXTRINSICS | INTRINSICS))) {
+	  std::cerr << std::endl
+		  << "The input SfM_Data file \"" << "sfm_data8" << "\" cannot be read." << std::endl;
 	  return EXIT_FAILURE;
   }
   
+  std::vector<SfM_Data> sfmdata_full;
+  std::vector<SfM_Data> sfmdata_insufficient; // dont have enough repeated view
+  std::vector<SfM_Data> sfmdata_insufficient2;
+  std::vector<SfM_Data> sfmdata_insufficient3;
+  sfmdata_full.push_back(sfm_data1);
+  sfmdata_full.push_back(sfm_data2);
+  sfmdata_full.push_back(sfm_data3);
+  sfmdata_full.push_back(sfm_data4);
+  sfmdata_full.push_back(sfm_data5);
+  sfmdata_full.push_back(sfm_data6);
+  sfmdata_full.push_back(sfm_data7);
+  sfmdata_full.push_back(sfm_data8);
+  //merge2data(sfmdata_full[0], sfmdata_full[1]);
 
-  Poses test_pose1 = sfm_data1.poses;
-  Poses test_pose2 = sfm_data2.poses;
-  //transform R t
-  std::vector<int> repeated_view;
-  for (auto it_test1 = test_pose1.begin(); it_test1 != test_pose1.end(); it_test1++) {
-	  for (auto it_test2 = test_pose2.begin(); it_test2 != test_pose2.end(); it_test2++) {
-		  if (it_test1->first == it_test2->first) {
-			  repeated_view.push_back(it_test1->first);
-			  std::cout << it_test1->first << std::endl;
+  int max_viewnum = 0;
+  int max_viewnum_id = 0;
+  for (int i = 0; i < sfmdata_full.size(); i++) {
+	  int part0_viewnum = sfmdata_full[i].GetPoses().size();
+	  if (part0_viewnum > max_viewnum) {
+		  max_viewnum = part0_viewnum;
+		  max_viewnum_id = i;
+	  }
+  }
+  std::cout << max_viewnum << " " << max_viewnum_id << std::endl;
+
+  for (int i = 0; i < sfmdata_full.size(); i++) {
+	  if (i == max_viewnum_id)continue;
+	  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_full[i])) {
+		  sfmdata_insufficient.push_back(sfmdata_full[i]);
+	  }
+  }
+
+  if(!sfmdata_insufficient.empty()) {
+	  for (int i = 0; i < sfmdata_insufficient.size(); i++) {
+		  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_insufficient[i])) {
+			  sfmdata_insufficient2.push_back(sfmdata_insufficient[i]);
 		  }
 	  }
   }
-
-  double scale_t;
-  Mat3 R_spec;  //sfmdata2
-  Vec3 T_spec;
-  Vec3 scale_part2_t;
-  Mat3 scale_part2_r;
-  Mat3 R_part1; //sfmdata1
-  Vec3 T_part1;
-  Vec3 C_part1;
-  Vec3 scale_part1_t;
-  Mat3 scale_part1_r;
-  for (auto it_test1 = test_pose1.begin(); it_test1 != test_pose1.end(); it_test1++) {
-	  if (it_test1->first == repeated_view[1]) {
-		  R_part1 = it_test1->second.rotation();
-		  T_part1 = it_test1->second.translation();
-		  C_part1 = it_test1->second.center();
-	  }
-
-	  if (it_test1->first == repeated_view[10]) {
-		  scale_part1_t = it_test1->second.translation();
-		  scale_part1_r = it_test1->second.rotation();
+  if (!sfmdata_insufficient2.empty()) {
+	  for (int i = 0; i < sfmdata_insufficient2.size(); i++) {
+		  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_insufficient2[i])) {
+			  sfmdata_insufficient3.push_back(sfmdata_insufficient2[i]);
+		  }
 	  }
   }
-  Vec3 ssss1 = scale_part1_t - scale_part1_r * R_part1.transpose() * T_part1;
-  //std::cout << scale_part1_t - scale_part1_r * R_part1.transpose()* T_part1 << std::endl;
-  //std::cout << scale_part1_t - T_part1 << std::endl; //
-  //std::cout << "-----------------" << std::endl;
-  for (auto it_test2 = test_pose2.begin(); it_test2 != test_pose2.end(); it_test2++) {
-	  if (it_test2->first == repeated_view[1]) {
-		  R_spec = it_test2->second.rotation();
-		  T_spec = it_test2->second.translation();
-	  }
-	  if (it_test2->first == repeated_view[10]) {
-		  scale_part2_t = it_test2->second.translation();
-		  scale_part2_r = it_test2->second.rotation();
+  if (!sfmdata_insufficient3.empty()) {
+	  for (int i = 0; i < sfmdata_insufficient3.size(); i++) {
+		  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_insufficient3[i])) {
+			  std::cout << "part" << i << "need recover" << std::endl;
+		  }
 	  }
   }
-  Vec3 ssss2 = scale_part2_t - scale_part2_r * R_spec.transpose() * T_spec;
-  //std::cout << scale_part2_t - scale_part2_r * R_spec.transpose()* T_spec << std::endl;
-  //std::cout << scale_part2_t - T_spec << std::endl; //
-
-  double scale_T = sqrt(ssss1.dot(ssss1)) / sqrt(ssss2.dot(ssss2));
-  std::cout << scale_T << std::endl;
-
-  for (auto it_test2 = sfm_data2.poses.begin(); it_test2 != sfm_data2.poses.end(); it_test2++) {
-	  if (it_test2->first == repeated_view[1])continue;
-	  else
-	  {
-		  Mat3 r_rel = it_test2->second.rotation_ * R_spec.transpose(); //correct
-		  Vec3 t_rel = it_test2->second.translation() - r_rel * T_spec;
-		  it_test2->second.rotation_ = r_rel * R_part1; //new_R  correct
-
-		  it_test2->second.center_ = -((it_test2->second.rotation_.transpose()) * (r_rel * T_part1 + scale_T * t_rel)); //t
-	  }
-  }
-
-  test_pose2[repeated_view[1]].rotation_ = R_part1;
-  test_pose2[repeated_view[1]].center_ = C_part1;
+  
 
 
-
-  //----------------------
-  Views data2_views = sfm_data2.views;
-  Poses data2_poses = sfm_data2.poses;
-  Intrinsics data2_intrinsics = sfm_data2.intrinsics;
-  Landmarks data2_structure = sfm_data2.structure;
-  Landmarks data2_control_points = sfm_data2.control_points;
-  for (auto it = data2_views.begin(); it != data2_views.end(); it++) {
-	  sfm_data1.views.insert(*it);
-  }
-  for (auto it = data2_poses.begin(); it != data2_poses.end(); it++) {
-	  sfm_data1.poses.insert(*it);
-  }
-  for (auto it = data2_intrinsics.begin(); it != data2_intrinsics.end(); it++) {
-	  sfm_data1.intrinsics.insert(*it);
-  }
-  //-----------------------
-
+  
+  //--------------------------------------------------------------------------------------------------------------
+  //----------------------------------------------triangulation---------------------------------------------------
+  //--------------------------------------------------------------------------------------------------------------
   const std::string sImage_describer = stlplus::create_filespec(sMatchesDir, "image_describer", "json");  //-m
   std::unique_ptr<Regions> regions_type = Init_region_type_from_file(sImage_describer);
   if (!regions_type)
@@ -280,7 +416,7 @@ int main(int argc, char **argv)
 
   openMVG::system::Timer timer;
   GlobalSfMReconstructionEngine_RelativeMotions sfmEngine(
-	  sfm_data1,
+	  sfmdata_full[max_viewnum_id],// sfm_data_full[0]
 	  sOutDir,
 	  stlplus::create_filespec(sOutDir, "Reconstruction_Report.html"));
 

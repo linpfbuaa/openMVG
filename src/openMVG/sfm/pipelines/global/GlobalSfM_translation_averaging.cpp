@@ -87,17 +87,7 @@ bool GlobalSfM_Translation_AveragingSolver::Translation_averaging(
   //-------------------
 
   // Keep the largest Biedge connected component graph of relative translations
-  Pair_Set pairs;
-  for (const openMVG::RelativeInfo_Vec & iter : vec_relative_motion_)
-  {
-    for (const relativeInfo & rel : iter)
-    {
-      pairs.insert(rel.first);
-    }
-  }
-  const std::set<IndexT> set_remainingIds =
-    openMVG::graph::CleanGraph_KeepLargestBiEdge_Nodes<Pair_Set, IndexT>(pairs);
-  KeepOnlyReferencedElement(set_remainingIds, vec_relative_motion_);
+  
 
   {
     const std::set<IndexT> index = getIndexT(vec_relative_motion_);

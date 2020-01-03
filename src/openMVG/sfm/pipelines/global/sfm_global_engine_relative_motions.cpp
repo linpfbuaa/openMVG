@@ -112,16 +112,7 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process() {
   //-------------------
   // Keep only the largest biedge connected subgraph
   //-------------------
-  {
-    const Pair_Set pairs = matches_provider_->getPairs();
-    const std::set<IndexT> set_remainingIds = graph::CleanGraph_KeepLargestBiEdge_Nodes<Pair_Set, IndexT>(pairs);
-    if (set_remainingIds.empty())
-    {
-      std::cout << "Invalid input image graph for global SfM" << std::endl;
-      return false;
-    }
-    KeepOnlyReferencedElement(set_remainingIds, matches_provider_->pairWise_matches_);
-  }
+  
 
   openMVG::rotation_averaging::RelativeRotations relatives_R;
   Compute_Relative_Rotations(relatives_R);
@@ -180,16 +171,7 @@ bool GlobalSfMReconstructionEngine_RelativeMotions::Process() {
 }
 
 bool GlobalSfMReconstructionEngine_RelativeMotions::Process2() {
-	{
-		const Pair_Set pairs = matches_provider_->getPairs();
-		const std::set<IndexT> set_remainingIds = graph::CleanGraph_KeepLargestBiEdge_Nodes<Pair_Set, IndexT>(pairs);
-		if (set_remainingIds.empty())
-		{
-			std::cout << "Invalid input image graph for global SfM" << std::endl;
-			return false;
-		}
-		KeepOnlyReferencedElement(set_remainingIds, matches_provider_->pairWise_matches_);
-	}
+	
 	matching::PairWiseMatches  tripletWise_matches;
 	matching::Load(tripletWise_matches,"/home/spark/lpf/tripletwise/tripletwise_matches.txt");
 	if (!Compute_Initial_Structure(tripletWise_matches))

@@ -310,9 +310,7 @@ int main(int argc, char **argv)
   }
   
   std::vector<SfM_Data> sfmdata_full;
-  std::vector<SfM_Data> sfmdata_insufficient; // dont have enough repeated view
-  std::vector<SfM_Data> sfmdata_insufficient2;
-  std::vector<SfM_Data> sfmdata_insufficient3;
+  
   sfmdata_full.push_back(sfm_data1);
   sfmdata_full.push_back(sfm_data2);
   sfmdata_full.push_back(sfm_data3);
@@ -321,8 +319,9 @@ int main(int argc, char **argv)
   sfmdata_full.push_back(sfm_data6);
   sfmdata_full.push_back(sfm_data7);
   sfmdata_full.push_back(sfm_data8);
-  //merge2data(sfmdata_full[0], sfmdata_full[1]);
-
+  
+  std::vector<SfM_Data> cpsfmdata_full;	
+  
   int max_viewnum = 0;
   int max_viewnum_id = 0;
   for (int i = 0; i < sfmdata_full.size(); i++) {
@@ -336,35 +335,19 @@ int main(int argc, char **argv)
 
   for (int i = 0; i < sfmdata_full.size(); i++) {
 	  if (i == max_viewnum_id)continue;
-	  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_full[i])) {
-		  sfmdata_insufficient.push_back(sfmdata_full[i]);
-	  }
-  }
-
-  if(!sfmdata_insufficient.empty()) {
-	  for (int i = 0; i < sfmdata_insufficient.size(); i++) {
-		  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_insufficient[i])) {
-			  sfmdata_insufficient2.push_back(sfmdata_insufficient[i]);
-		  }
-	  }
-  }
-  if (!sfmdata_insufficient2.empty()) {
-	  for (int i = 0; i < sfmdata_insufficient2.size(); i++) {
-		  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_insufficient2[i])) {
-			  sfmdata_insufficient3.push_back(sfmdata_insufficient2[i]);
-		  }
-	  }
-  }
-  if (!sfmdata_insufficient3.empty()) {
-	  for (int i = 0; i < sfmdata_insufficient3.size(); i++) {
-		  if (!merge2data(sfmdata_full[max_viewnum_id], sfmdata_insufficient3[i])) {
-			  std::cout << "part" << i << "need recover" << std::endl;
-		  }
-	  }
+	  else cpsfmdata_full.push_back(sfmdata_full[i]);
   }
   
-
-
+  int loop = 0;
+  int loopRestrict = 10;
+  while (!cpsfmdata_full.empty() && loop < loopRestrict) {
+	  for (auto it = cpsfmdata_full.begin(); it != cpsfmdata_full.end();) {
+		  if (merge2data(sfmdata_full[max_viewnum_id], *it))it = cpsfmdata_full.erase(it);
+		  else it++;
+	  }
+	  loop++;
+  }
+  
   
   //--------------------------------------------------------------------------------------------------------------
   //----------------------------------------------triangulation---------------------------------------------------

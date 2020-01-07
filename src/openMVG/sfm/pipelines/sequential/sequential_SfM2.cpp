@@ -202,6 +202,7 @@ bool SequentialSfMReconstructionEngine2::Process() {
   
   
 bool SequentialSfMReconstructionEngine2::Process2() {
+  return false;
 }
 
 bool SequentialSfMReconstructionEngine2::InitTracksAndLandmarks()

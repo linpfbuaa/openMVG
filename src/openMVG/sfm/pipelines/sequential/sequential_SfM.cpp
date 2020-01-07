@@ -202,6 +202,7 @@ bool SequentialSfMReconstructionEngine::Process() {
 
   
 bool SequentialSfMReconstructionEngine::Process2() {
+  return false;
 }
   
 /// Select a candidate initial pair
